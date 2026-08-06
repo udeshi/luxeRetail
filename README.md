@@ -1,107 +1,131 @@
-# New Nx Repository
+# LuxeRetail
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+A full-stack e-commerce platform — customer storefront, admin dashboard, and
+a mobile app, sharing one NestJS API and one Postgres database. Built as a
+portfolio project to demonstrate authentication, CRUD, sandbox payments,
+file uploads, and a monorepo architecture designed to keep growing without a
+rewrite.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+Read **[ARCHITECTURE.md](./ARCHITECTURE.md)** for the reasoning behind the
+structure (Nx boundaries, CQRS + hexagonal architecture in the API, the
+auth token strategy, etc.) — this file is just setup and day-to-day commands.
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/docs/technologies/typescript/introduction?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
-🚀 If you haven't connected to Nx Cloud yet, [complete your setup here](https://cloud.nx.app/get-started). Get faster builds with remote caching, distributed task execution, and self-healing CI. [See how your workspace can benefit](#nx-cloud).
-## Generate a library
+## Stack
 
-```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
+| | |
+|---|---|
+| Monorepo | Nx + pnpm workspaces |
+| API | NestJS, CQRS (`@nestjs/cqrs`), Prisma, PostgreSQL |
+| Storefront & Admin | React + Vite, TanStack Router (file-based) + TanStack Query, Tailwind v4 |
+| Mobile | Expo + Expo Router, React Native |
+| Shared | Zod contracts, a typed API client + React Query hooks, one Tailwind theme |
+| Payments | Stripe (test mode) |
+| Storage | S3-compatible (MinIO locally) via presigned URLs |
+| Jobs / email | BullMQ + Redis, Mailhog locally |
+
+## Prerequisites
+
+- Node 24, [pnpm](https://pnpm.io) 10+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (for Postgres/Redis/MinIO/Mailhog)
+- A free [Stripe](https://dashboard.stripe.com/register) account, test-mode keys
+- For the mobile app: [Expo Go](https://expo.dev/go) on your phone, or an iOS/Android simulator
+
+## Setup
+
+```bash
+pnpm install
+cp .env.example .env          # fill in your Stripe test keys; everything else has a working local default
+docker compose -f infra/docker-compose.yml up -d
+pnpm exec nx run api:prisma-migrate   # creates the schema
+pnpm exec nx run api:prisma-seed      # demo catalog + admin/customer accounts
 ```
 
-## Run tasks
+Seeded accounts (password for both: `Password123!`):
 
-To build the library use:
+- `admin@luxeretail.dev` — admin console access
+- `customer@luxeretail.dev` — regular shopper, empty cart
 
-```sh
-npx nx run pkg1:build
+### Stripe webhook (checkout won't complete without this)
+
+Checkout only marks an order `PAID` when Stripe's webhook fires — install
+the [Stripe CLI](https://docs.stripe.com/stripe-cli) and forward events to
+your local API while it's running:
+
+```bash
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
 ```
 
-To run any task with Nx use:
+Copy the `whsec_...` it prints into `.env` as `STRIPE_WEBHOOK_SECRET`.
 
-```sh
-npx nx run <project-name>:<target>
+## Running it
+
+```bash
+pnpm exec nx serve api          # http://localhost:3000/api — Swagger at /api/docs
+pnpm exec nx serve storefront   # http://localhost:4200
+pnpm exec nx serve admin        # http://localhost:4300
+pnpm exec nx run mobile:start   # opens Expo dev tools — scan the QR with Expo Go
 ```
 
-These targets are either [inferred automatically](https://nx.dev/docs/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+Try it: browse the seeded catalog on the storefront, add something to your
+cart, sign in as the customer account, and check out with Stripe's test
+card `4242 4242 4242 4242` (any future expiry, any CVC). Then sign into the
+admin console and watch the order show up.
 
-[More about running tasks in the docs &raquo;](https://nx.dev/docs/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Common commands
 
-## Versioning and releasing
-
-To version and release the library use
-
-```
-npx nx release
-```
-
-Pass `--dry-run` to see what would happen without actually releasing the library.
-
-[Learn more about Nx release &raquo;](https://nx.dev/docs/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Keep TypeScript project references up to date
-
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` or `require` statements). This sync is automatically done when running tasks such as `build` or `typecheck`, which require updated references to function correctly.
-
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
-
-```sh
-npx nx sync
+```bash
+pnpm exec nx run-many -t lint typecheck test    # everything, whole workspace
+pnpm exec nx affected -t lint typecheck test    # only what your changes could have broken
+pnpm exec nx graph                              # visualize the project/dependency graph
+pnpm exec nx run api:prisma-studio              # browse the database in a GUI
 ```
 
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
+Prefix any of these with `pnpm exec` (already shown above) or install Nx
+globally to drop it (`nx run-many ...`).
 
-```sh
-npx nx sync:check
+## Mobile app: EAS Build & OTA updates
+
+Building an installable app or shipping an over-the-air JS update needs an
+[Expo account](https://expo.dev/signup) and the EAS CLI:
+
+```bash
+npm install -g eas-cli
+eas login
+cd apps/mobile
+eas init                 # links this app to your Expo account, writes a project ID into app.json
+eas build --profile preview --platform ios     # or android
+eas update --branch production                 # ships a JS-only change instantly, no store review
 ```
 
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
+None of this is required for local development — `nx run mobile:start` runs
+entirely without an Expo account.
 
-## Nx Cloud
+## Project layout
 
-Nx Cloud ensures a [fast and scalable CI](https://nx.dev/nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/docs/features/ci-features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/docs/features/ci-features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/docs/features/ci-features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/docs/features/ci-features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Set up CI (non-Github Actions CI)
-
-**Note:** This is only required if your CI provider is not GitHub Actions.
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
+```
+apps/
+  api/          NestJS — REST API (CQRS + hexagonal architecture)
+  storefront/    React + Vite — public storefront
+  admin/          React + Vite — admin dashboard
+  mobile/          Expo — customer mobile app
+libs/shared/
+  contracts/       Zod schemas — the single source of truth for every shape
+                   that crosses a process boundary (API DTOs, frontend types,
+                   form validation — all from the same definition)
+  api-client/       Typed fetch client + TanStack Query hooks, used by
+                   storefront, admin, and mobile
+  ui/               Web component kit (storefront + admin only)
+  utils/             Small framework-agnostic helpers
+infra/
+  docker-compose.yml   Postgres, Redis, MinIO, Mailhog for local dev
 ```
 
-[Learn more about Nx on CI](https://nx.dev/docs/features/ci-features?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## What's deliberately not built yet
 
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/docs/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## 🔗 Learn More
-
-- [Nx Documentation](https://nx.dev/docs)
-- [Crafting Your Workspace Tutorial](https://nx.dev/docs/getting-started/tutorials/crafting-your-workspace)
-- [Module Boundaries](https://nx.dev/docs/features/enforce-module-boundaries)
-- [Releasing Packages](https://nx.dev/docs/features/manage-releases)
-- [Nx Plugins](https://nx.dev/docs/concepts/nx-plugins)
-- [Nx Cloud](https://nx.dev/nx-cloud)
-
-## 💬 Community
-
-Join the Nx community:
-
-- [Discord](https://go.nx.dev/community)
-- [X (Twitter)](https://twitter.com/nxdevtools)
-- [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [YouTube](https://www.youtube.com/@nxdevtools)
-- [Blog](https://nx.dev/blog)
+Documented as concrete extension points (with the reasoning) in
+[ARCHITECTURE.md](./ARCHITECTURE.md#not-built-this-pass-documented-extension-points):
+mobile checkout (mobile browses/carts/reads orders; purchasing happens on
+the storefront web checkout in this build), the push-notification *send*
+side (registration works; there's nowhere to send to yet), and NativeWind
+on mobile (styling is plain `StyleSheet` today, sharing the same color
+values as the web Tailwind theme by hand rather than the same syntax).

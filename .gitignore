@@ -38,6 +38,18 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# Environment variables — never commit real secrets, only .env.example
+.env
+.env.local
+.env.*.local
+
+# Prisma-generated client (regenerated via `prisma generate`, not source)
+apps/api/src/generated/
+
+# EAS / Expo local credentials
+.easrc
+credentials.json
+
 .nx/cache
 .nx/workspace-data
 
@@ -48,3 +60,23 @@ Thumbs.db
 .nx/polygraph
 .nx/self-healing
 .nx/migrate-runs
+
+# Expo
+node_modules/
+.expo/
+.yarn/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+cache/
+
+
+vite.config.*.timestamp*
+vitest.config.*.timestamp*
+test-output

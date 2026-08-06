@@ -1,0 +1,47 @@
+{
+  "name": "@org/mobile",
+  "version": "0.0.1",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "eas-build-post-install": "cd ../../ && node tools/scripts/eas-build-post-install.mjs . apps/mobile"
+  },
+  "nx": {
+    "tags": [
+      "scope:mobile",
+      "type:app"
+    ]
+  },
+  "dependencies": {
+    "@expo/metro": "*",
+    "@expo/vector-icons": "*",
+    "@hookform/resolvers": "^5.7.1",
+    "@org/api-client": "workspace:*",
+    "@org/contracts": "workspace:*",
+    "@org/utils": "workspace:*",
+    "@tanstack/react-query": "^5.101.4",
+    "@testing-library/react-native": "*",
+    "expo": "*",
+    "expo-constants": "^57.0.9",
+    "expo-device": "^57.0.1",
+    "expo-linking": "^57.0.5",
+    "expo-notifications": "^57.0.8",
+    "expo-router": "^57.0.10",
+    "expo-secure-store": "^57.0.1",
+    "expo-splash-screen": "*",
+    "expo-status-bar": "*",
+    "expo-system-ui": "*",
+    "jest-expo": "*",
+    "react": "*",
+    "react-hook-form": "^7.84.0",
+    "react-native": "*",
+    "react-native-gesture-handler": "^3.1.0",
+    "react-native-safe-area-context": "^5.8.1",
+    "react-native-screens": "^4.26.2",
+    "react-native-svg": "*",
+    "react-native-svg-transformer": "*",
+    "react-native-web": "*",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
+  }
+}

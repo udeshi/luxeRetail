@@ -1,0 +1,31 @@
+{
+  "name": "@org/storefront",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "tags": [
+      "scope:storefront",
+      "type:app"
+    ]
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.7.1",
+    "@org/api-client": "workspace:*",
+    "@org/contracts": "workspace:*",
+    "@org/ui": "workspace:*",
+    "@org/utils": "workspace:*",
+    "@stripe/react-stripe-js": "^6.8.0",
+    "@stripe/stripe-js": "^9.13.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/react-query": "^5.101.4",
+    "@tanstack/react-router": "^1.170.19",
+    "lucide-react": "^1.28.0",
+    "react-hook-form": "^7.84.0",
+    "tailwindcss": "^4.3.3",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@tanstack/router-plugin": "^1.168.24"
+  }
+}
