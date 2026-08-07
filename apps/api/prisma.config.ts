@@ -11,7 +11,14 @@ export default defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
     path: 'prisma/migrations',
-    seed: 'ts-node --transpile-only prisma/seed.ts',
+    // ts-node chokes on this: apps/api/tsconfig.json is a solution-style
+    // config with no files/include of its own (TS5011), and the generated
+    // Prisma client (`prisma-client` generator) is ESM-only — it reads
+    // `import.meta.url` at module scope — which ts-node's ESM loader only
+    // resolves with explicit extensions on every relative import. tsx sidesteps
+    // both: esbuild-based, no project-file resolution, extensionless ESM
+    // imports just work.
+    seed: 'tsx prisma/seed.ts',
   },
   datasource: {
     url: process.env['DATABASE_URL'],

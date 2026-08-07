@@ -1,4 +1,4 @@
-import { Injectable, Module } from '@nestjs/common';
+import { Global, Injectable, Module } from '@nestjs/common';
 import { ConfigModule as NestConfigModule, ConfigService } from '@nestjs/config';
 import { validateEnv, type Env } from './env.schema';
 
@@ -11,7 +11,11 @@ export class TypedConfigService {
 }
 
 /** Typed wrapper around @nestjs/config's ConfigService so callers get
- *  autocomplete + compile-time checked keys instead of stringly-typed gets. */
+ *  autocomplete + compile-time checked keys instead of stringly-typed gets.
+ *  @Global so every feature module can inject TypedConfigService without
+ *  importing this module itself, matching the underlying NestConfigModule's
+ *  isGlobal: true. */
+@Global()
 @Module({
   imports: [
     NestConfigModule.forRoot({

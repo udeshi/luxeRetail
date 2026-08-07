@@ -5,10 +5,14 @@
  *
  * Run via `pnpm nx run api:prisma-seed` (wraps `prisma db seed`).
  */
+import { PrismaPg } from '@prisma/adapter-pg';
 import { hash } from 'bcrypt';
 import { PrismaClient } from '../src/generated/prisma/client';
 
-const prisma = new PrismaClient();
+// Prisma 7's `prisma-client` generator requires an explicit driver adapter
+// (see PrismaService) — this script isn't wired through Nest's DI, so it
+// has to build one itself.
+const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env['DATABASE_URL'] }) });
 
 async function main() {
   console.log('Seeding database...');

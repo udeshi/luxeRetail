@@ -31,6 +31,27 @@ module.exports = {
       'class-transformer/storage': require.resolve('class-transformer/cjs/storage'),
     },
   },
+  // bcrypt ships a native .node addon that it locates at runtime via
+  // `__dirname`-relative lookup into its own package's prebuilds/ folder.
+  // pino's dev transport (pino-pretty) spawns a worker thread through
+  // thread-stream, which likewise does a `__dirname`-relative lookup for its
+  // own lib/worker.js. Webpack's default `externalDependencies: 'all'` only
+  // externalizes deps it finds hoisted in the workspace-root node_modules,
+  // which pnpm doesn't do — so these get bundled into main.js instead,
+  // `__dirname` resolves to dist/, and the file/native-binary lookups break.
+  // Force the whole pino family + thread-stream external so each package's
+  // real installed copy (with its own correctly pnpm-linked node_modules)
+  // handles its own internal requires, instead of inlining them.
+  externals: [
+    {
+      bcrypt: 'commonjs bcrypt',
+      pino: 'commonjs pino',
+      'pino-http': 'commonjs pino-http',
+      'pino-pretty': 'commonjs pino-pretty',
+      'nestjs-pino': 'commonjs nestjs-pino',
+      'thread-stream': 'commonjs thread-stream',
+    },
+  ],
   plugins: [
     new NxAppWebpackPlugin({
       target: 'node',
@@ -42,6 +63,7 @@ module.exports = {
       outputHashing: 'none',
       generatePackageJson: false,
       sourceMap: true,
+      mergeExternals: true,
     }),
   ],
 };
