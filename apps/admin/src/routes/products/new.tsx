@@ -19,6 +19,7 @@ function NewProductPage() {
         <ProductForm
           submitLabel="Create Product"
           isSubmitting={createProduct.isPending}
+          submitError={createProduct.error?.message}
           onSubmit={(values) => createProduct.mutate(values, { onSuccess: () => navigate({ to: '/products' }) })}
         />
       </div>

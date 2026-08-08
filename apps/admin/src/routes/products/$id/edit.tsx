@@ -31,6 +31,7 @@ function EditProductPage() {
         <ProductForm
           submitLabel="Save Changes"
           isSubmitting={updateProduct.isPending}
+          submitError={updateProduct.error?.message}
           defaultValues={{
             name: product.name,
             slug: product.slug,

@@ -19,11 +19,15 @@ export function ProductForm({
   onSubmit,
   isSubmitting,
   submitLabel,
+  submitError,
 }: {
   defaultValues?: Partial<CreateProductRequest>;
   onSubmit: (values: CreateProductRequest) => void;
   isSubmitting: boolean;
   submitLabel: string;
+  /** Server-side error from the create/update mutation — distinct from the
+   *  client-side validation errors below, which never reach the server. */
+  submitError?: string | null;
 }) {
   const { data: categories } = useCategories();
   const {
@@ -125,40 +129,56 @@ export function ProductForm({
           </button>
         </div>
         <div className="space-y-3">
-          {fields.map((field, index) => (
-            <div key={field.id} className="grid grid-cols-[1fr_1fr_100px_100px_auto] items-end gap-2 rounded-xl border border-brand-100 p-3">
-              <div>
-                <Label className="text-xs">SKU</Label>
-                <Input {...register(`variants.${index}.sku`)} />
+          {fields.map((field, index) => {
+            const variantErrors = errors.variants?.[index];
+            return (
+              <div key={field.id} className="grid grid-cols-[1fr_1fr_100px_100px_auto] items-start gap-2 rounded-xl border border-brand-100 p-3">
+                <div>
+                  <Label className="text-xs">SKU</Label>
+                  <Input error={variantErrors?.sku?.message} {...register(`variants.${index}.sku`)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Option (e.g. Size: M)</Label>
+                  <Input
+                    defaultValue={Object.values(field.attributes ?? {})[0] ?? ''}
+                    onChange={(e) => setValue(`variants.${index}.attributes`, { option: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Price (¢)</Label>
+                  <Input
+                    type="number"
+                    error={variantErrors?.priceCents?.message}
+                    {...register(`variants.${index}.priceCents`, { valueAsNumber: true })}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Stock</Label>
+                  <Input
+                    type="number"
+                    error={variantErrors?.inventoryQty?.message}
+                    {...register(`variants.${index}.inventoryQty`, { valueAsNumber: true })}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="mb-2 text-xs text-red-500 hover:underline disabled:opacity-30"
+                  disabled={fields.length <= 1}
+                  onClick={() => remove(index)}
+                >
+                  Remove
+                </button>
               </div>
-              <div>
-                <Label className="text-xs">Option (e.g. Size: M)</Label>
-                <Input
-                  defaultValue={Object.values(field.attributes ?? {})[0] ?? ''}
-                  onChange={(e) => setValue(`variants.${index}.attributes`, { option: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Price (¢)</Label>
-                <Input type="number" {...register(`variants.${index}.priceCents`, { valueAsNumber: true })} />
-              </div>
-              <div>
-                <Label className="text-xs">Stock</Label>
-                <Input type="number" {...register(`variants.${index}.inventoryQty`, { valueAsNumber: true })} />
-              </div>
-              <button
-                type="button"
-                className="mb-2 text-xs text-red-500 hover:underline disabled:opacity-30"
-                disabled={fields.length <= 1}
-                onClick={() => remove(index)}
-              >
-                Remove
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
-        {errors.variants && <p className="mt-1 text-xs text-red-600">{errors.variants.message as string}</p>}
+        {errors.variants?.root && <p className="mt-1 text-xs text-red-600">{errors.variants.root.message}</p>}
+        {errors.variants && !Array.isArray(errors.variants) && !errors.variants.root && (
+          <p className="mt-1 text-xs text-red-600">{errors.variants.message as string}</p>
+        )}
       </div>
+
+      {submitError && <p className="text-sm text-red-600">{submitError}</p>}
 
       <Button type="submit" size="lg" loading={isSubmitting}>
         {submitLabel}
