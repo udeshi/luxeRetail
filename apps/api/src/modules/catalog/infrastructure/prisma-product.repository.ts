@@ -111,12 +111,24 @@ export class PrismaProductRepository implements ProductRepository {
       data.variants = { deleteMany: {}, create: input.variants };
     }
 
-    const product = await this.prisma.product.update({
-      where: { id },
-      data,
-      include: { images: { orderBy: { position: 'asc' } }, variants: true },
-    });
-    return toEntity(product);
+    try {
+      const product = await this.prisma.product.update({
+        where: { id },
+        data,
+        include: { images: { orderBy: { position: 'asc' } }, variants: true },
+      });
+      return toEntity(product);
+    } catch (err) {
+      // Replacing variants means deleting the old rows first — that's
+      // blocked (P2003) when a variant is already referenced by a cart or
+      // an order, same restriction `delete()` below hits.
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2003') {
+        throw new ConflictException(
+          'Cannot replace variants that are in an existing cart or order — remove that variant from carts/orders first, or add a new variant instead of editing this one',
+        );
+      }
+      throw err;
+    }
   }
 
   async delete(id: string): Promise<void> {
