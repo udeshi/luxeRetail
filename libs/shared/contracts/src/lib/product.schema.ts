@@ -67,7 +67,14 @@ const VariantInputSchema = z.object({
   inventoryQty: z.number().int().nonnegative(),
 });
 
-export const CreateProductRequestSchema = z.object({
+// Bare field schemas with no `.default()` — shared by both the create and
+// update schemas below. `.default()` has to be layered on *after* `.partial()`
+// would run, not before: Zod's `.partial()` only allows a field to be
+// *absent*, it doesn't strip that field's own default, so
+// `CreateProductRequestSchema.partial()` would silently resurrect
+// `status`/`imageUrls` (via their defaults) on every partial PATCH that
+// omits them — overwriting whatever the product already had.
+const ProductFieldsSchema = z.object({
   name: z.string().min(1),
   slug: z
     .string()
@@ -76,11 +83,16 @@ export const CreateProductRequestSchema = z.object({
   description: z.string().min(1),
   basePriceCents: z.number().int().nonnegative(),
   categoryId: z.string().uuid(),
+  status: ProductStatusSchema,
+  imageUrls: z.array(z.string().url()),
+  variants: z.array(VariantInputSchema).min(1, 'At least one variant is required'),
+});
+
+export const CreateProductRequestSchema = ProductFieldsSchema.extend({
   status: ProductStatusSchema.default('DRAFT'),
   imageUrls: z.array(z.string().url()).default([]),
-  variants: z.array(VariantInputSchema).min(1, 'At least one variant is required'),
 });
 export type CreateProductRequest = z.infer<typeof CreateProductRequestSchema>;
 
-export const UpdateProductRequestSchema = CreateProductRequestSchema.partial();
+export const UpdateProductRequestSchema = ProductFieldsSchema.partial();
 export type UpdateProductRequest = z.infer<typeof UpdateProductRequestSchema>;
