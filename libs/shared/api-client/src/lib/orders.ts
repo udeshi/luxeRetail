@@ -48,6 +48,9 @@ export function useUpdateOrderStatus() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: OrderStatus }) => ordersApi.adminUpdateStatus(id, status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] }),
+    onSuccess: (_data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.order(id) });
+    },
   });
 }
