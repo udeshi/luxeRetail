@@ -4,6 +4,7 @@
   "license": "UNLICENSED",
   "scripts": {},
   "private": true,
+  "packageManager": "pnpm@11.17.0",
   "devDependencies": {
     "@babel/core": "^7.14.5",
     "@babel/preset-react": "^7.14.5",
