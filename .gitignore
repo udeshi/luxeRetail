@@ -54,9 +54,6 @@ credentials.json
 .nx/workspace-data
 
 
-
-
-
 .nx/polygraph
 .nx/self-healing
 .nx/migrate-runs
