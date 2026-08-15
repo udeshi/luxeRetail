@@ -10,6 +10,10 @@ Read **[ARCHITECTURE.md](./ARCHITECTURE.md)** for the reasoning behind the
 structure (Nx boundaries, CQRS + hexagonal architecture in the API, the
 auth token strategy, etc.) — this file is just setup and day-to-day commands.
 
+This repo is intended to be run locally with the included Docker services and
+local environment defaults, making it easy to explore the platform end-to-end
+without changing the codebase structure.
+
 ## Stack
 
 | | |
