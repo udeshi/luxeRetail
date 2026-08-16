@@ -87,6 +87,14 @@ pnpm exec nx run api:prisma-studio              # browse the database in a GUI
 Prefix any of these with `pnpm exec` (already shown above) or install Nx
 globally to drop it (`nx run-many ...`).
 
+## Screenshots
+
+<div align="center">
+  <img src="./docs/screenshots/storefront-home.png" width="900" alt="LuxeRetail storefront home screen" />
+  <br />
+  <img src="./docs/screenshots/admin-dashboard.png" width="900" alt="LuxeRetail admin dashboard" />
+</div>
+
 ## Mobile app: EAS Build & OTA updates
 
 Building an installable app or shipping an over-the-air JS update needs an
