@@ -89,10 +89,24 @@ globally to drop it (`nx run-many ...`).
 
 ## Screenshots
 
+**Storefront**
+
 <div align="center">
-  <img src="./docs/screenshots/storefront-home.png" width="900" alt="LuxeRetail storefront home screen" />
-  <br />
-  <img src="./docs/screenshots/admin-dashboard.png" width="900" alt="LuxeRetail admin dashboard" />
+  <img src="./docs/screenshots/storefront-home.png" width="900" alt="Storefront home screen" />
+  <br /><br />
+  <img src="./docs/screenshots/storefront-catalog.png" width="440" alt="Storefront catalog" />
+  <img src="./docs/screenshots/storefront-product-detail.png" width="440" alt="Storefront product detail" />
+  <br /><br />
+  <img src="./docs/screenshots/storefront-cart.png" width="900" alt="Storefront cart" />
+</div>
+
+**Admin**
+
+<div align="center">
+  <img src="./docs/screenshots/admin-dashboard.png" width="900" alt="Admin dashboard" />
+  <br /><br />
+  <img src="./docs/screenshots/admin-products.png" width="440" alt="Admin products list" />
+  <img src="./docs/screenshots/admin-orders.png" width="440" alt="Admin orders list" />
 </div>
 
 ## Mobile app: EAS Build & OTA updates
